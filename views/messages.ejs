@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Messages</title>
+    <style>
+        .message {
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        .message.unread {
+            background-color: #f0f8ff;
+        }
+    </style>
+</head>
+<body>
+    <h1>Messages</h1>
+    
+    <div id="conversations">
+        <!-- List of conversations -->
+    </div>
+    
+    <div id="messageThread">
+        <!-- Selected conversation messages -->
+    </div>
+    
+    <form id="newMessage">
+        <input type="text" id="recipient" placeholder="Username">
+        <textarea id="messageContent" placeholder="Your message"></textarea>
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        // Load conversations
+        fetch('/api/messages/conversations')
+            .then(res => res.json())
+            .then(renderConversations);
+            
+        // Send message
+        document.getElementById('newMessage').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await fetch('/api/messages', {
+                method: 'POST',
+                body: JSON.stringify({
+                    recipient: document.getElementById('recipient').value,
+                    content: document.getElementById('messageContent').value
+                })
+            });
+        });
+    </script>
+</body>
+</html>

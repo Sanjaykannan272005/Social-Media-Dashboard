@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TwittClone - Home</title>
+    <style>
+        /* Twitter-like styling */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #0f1419;
+        }
+        .tweet {
+            border-bottom: 1px solid #e6ecf0;
+            padding: 12px 0;
+        }
+        .tweet-actions {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        .tweet-actions a {
+            color: #536471;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .comment-form {
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Home</h1>
+        <a href="/profile">Profile</a>
+        <a href="/messages">Messages</a>
+        <a href="/logout">Logout</a>
+    </header>
+
+    <!-- Create Post -->
+    <div class="tweet">
+        <form id="createPost">
+            <textarea name="content" placeholder="What's happening?" rows="3" required></textarea>
+            <div>
+                <label>
+                    <input type="checkbox" name="is_public" checked> Public
+                </label>
+                <button type="submit">Tweet</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Posts Feed -->
+    <div id="postsFeed">
+        <% posts.forEach(post => { %>
+            <div class="tweet" data-post-id="<%= post.id %>">
+                <strong><%= post.username %></strong>
+                <p><%= post.content %></p>
+                <div class="tweet-actions">
+                    <a href="#" class="like-btn" data-liked="<%= post.is_liked %>">
+                        <%= post.is_liked ? '❤️' : '🤍' %> <%= post.like_count %>
+                    </a>
+                    <a href="#" class="comment-btn">💬 Comment</a>
+                    <% if (post.user_id === user.id) { %>
+                        <a href="#" class="delete-btn">🗑️ Delete</a>
+                    <% } %>
+                </div>
+                
+                <!-- Comments Section -->
+                <div class="comments">
+                    <% post.comments.forEach(comment => { %>
+                        <div class="comment">
+                            <strong><%= comment.username %></strong>
+                            <p><%= comment.content %></p>
+                        </div>
+                    <% }); %>
+                </div>
+                
+                <!-- Comment Form -->
+                <form class="comment-form">
+                    <input type="text" name="content" placeholder="Write a comment..." required>
+                    <button type="submit">Post</button>
+                </form>
+            </div>
+        <% }); %>
+    </div>
+
+    <script>
+        // Like functionality
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const postId = e.target.closest('.tweet').dataset.postId;
+                const isLiked = e.target.dataset.liked === 'true';
+                
+                const response = await fetch(`/api/posts/${postId}/like`, {
+                    method: isLiked ? 'DELETE' : 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.reload();
+                }
+            });
+        });
+        
+        // Toggle comment form
+        document.querySelectorAll('.comment-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const form = e.target.closest('.tweet').querySelector('.comment-form');
+                form.style.display = form.style.display === 'block' ? 'none' : 'block';
+            });
+        });
+        
+        // Post submission
+        document.getElementById('createPost').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            await fetch('/api/posts', {
+                method: 'POST',
+                body: formData
+            });
+            window.location.reload();
+        });
+    </script>
+</body>
+</html>
